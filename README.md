@@ -3,7 +3,7 @@
 
 Welcome to the Breast Cancer Detection app! This application leverages machine learning to assist in diagnosing breast cancer by predicting whether a breast mass is benign or malignant based on a variety of medical features.
 
-![App Screenshot](insert_your_screenshot_link_here)
+![alt text](<Screenshot 2024-04-30 214638.png>)
 
 ## Features
 - **Interactive Sliders**: Adjust sliders to set different values for medical features like radius, texture, perimeter, and more.
