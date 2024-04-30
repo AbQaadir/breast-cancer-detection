@@ -1,5 +1,10 @@
 import streamlit as st
 import plotly.graph_objects as go
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from pickletools import pickle
+import plotly.graph_objects as go
+import plotly.express as px
 
 
 def side_bar():
@@ -126,8 +131,53 @@ def side_bar():
                 input_dict[key] = st.slider(
                     name, min_value=min_value, max_value=max_value, value=default_value
                 )
-                
+
     return input_dict
+
+
+def get_scale_data(input_data):
+
+    scaler = pickle.load(open("models/scaler.pkl", "rb"))
+
+    fueature_names = [
+        "radius_mean",
+        "texture_mean",
+        "perimeter_mean",
+        "area_mean",
+        "smoothness_mean",
+        "compactness_mean",
+        "concavity_mean",
+        "concave_points_mean",
+        "symmetry_mean",
+        "fractal_dimension_mean",
+        "radius_se",
+        "texture_se",
+        "perimeter_se",
+        "area_se",
+        "smoothness_se",
+        "compactness_se",
+        "concavity_se",
+        "concave_points_se",
+        "symmetry_se",
+        "fractal_dimension_se",
+        "radius_worst",
+        "texture_worst",
+        "perimeter_worst",
+        "area_worst",
+        "smoothness_worst",
+        "compactness_worst",
+        "concavity_worst",
+        "concave_points_worst",
+        "symmetry_worst",
+        "fractal_dimension_worst",
+    ]
+
+    input_data = np.array([input_data[feature] for feature in fueature_names]).reshape(
+        1, -1
+    )
+    input_data = scaler.transform(input_data)
+
+    return input_data
 
 
 def get_redar_chart(input_data):
@@ -149,69 +199,98 @@ def get_redar_chart(input_data):
 
     fig = go.Figure()
 
+    colors = px.colors.qualitative.Plotly
+
     fig.add_trace(
         go.Scatterpolar(
             r=[
-                input_data["radius_mean"],
-                input_data["texture_mean"],
-                input_data["perimeter_mean"],
-                input_data["area_mean"],
-                input_data["smoothness_mean"],
-                input_data["compactness_mean"],
-                input_data["concavity_mean"],
-                input_data["concave_points_mean"],
-                input_data["symmetry_mean"],
-                input_data["fractal_dimension_mean"],
+                input_data[0][0],
+                input_data[0][1],
+                input_data[0][2],
+                input_data[0][3],
+                input_data[0][4],
+                input_data[0][5],
+                input_data[0][6],
+                input_data[0][7],
+                input_data[0][8],
+                input_data[0][9]
             ],
             theta=categories,
             fill="toself",
             name="Mean",
+            marker=dict(color=colors[0]),
         )
     )
 
     fig.add_trace(
         go.Scatterpolar(
             r=[
-                input_data["radius_se"],
-                input_data["texture_se"],
-                input_data["perimeter_se"],
-                input_data["area_se"],
-                input_data["smoothness_se"],
-                input_data["compactness_se"],
-                input_data["concavity_se"],
-                input_data["concave_points_se"],
-                input_data["symmetry_se"],
-                input_data["fractal_dimension_se"],
+                input_data[0][10],
+                input_data[0][11],
+                input_data[0][12],
+                input_data[0][13],
+                input_data[0][14],
+                input_data[0][15],
+                input_data[0][16],
+                input_data[0][17],
+                input_data[0][18],
+                input_data[0][19],
             ],
             theta=categories,
             fill="toself",
             name="Standard Error",
+            marker=dict(color=colors[1]),
         )
     )
 
     fig.add_trace(
         go.Scatterpolar(
             r=[
-                input_data["radius_worst"],
-                input_data["texture_worst"],
-                input_data["perimeter_worst"],
-                input_data["area_worst"],
-                input_data["smoothness_worst"],
-                input_data["compactness_worst"],
-                input_data["concavity_worst"],
-                input_data["concave_points_worst"],
-                input_data["symmetry_worst"],
-                input_data["fractal_dimension_worst"],
+                input_data[0][20],
+                input_data[0][21],
+                input_data[0][22],
+                input_data[0][23],
+                input_data[0][24],
+                input_data[0][25],
+                input_data[0][26],
+                input_data[0][27],
+                input_data[0][28],
+                input_data[0][29],
             ],
             theta=categories,
             fill="toself",
             name="Worst",
+            marker=dict(color=colors[2]),
         )
     )
 
     fig.update_layout(
+        annotations=[
+            dict(
+                text="Mean",
+                x=0.5,
+                y=0.5,
+                font=dict(size=12),
+                showarrow=False,
+            ),
+            dict(
+                text="Standard Error",
+                x=0.5,
+                y=0.5,
+                font=dict(size=12),
+                showarrow=False,
+            ),
+            dict(
+                text="Worst",
+                x=0.5,
+                y=0.5,
+                font=dict(size=12),
+                showarrow=False,
+            ),
+        ],
+        title="Breast Cancer Detection",
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 1]),
+            radialaxis=dict(visible=True, range=[0, 13]),
         ),
         showlegend=True,
     )
@@ -219,45 +298,27 @@ def get_redar_chart(input_data):
     return fig
 
 
-def get_scale_data(input_data):
+def predict_cancer(input_data):
 
-    min_max = {
-        "radius_mean": (6.981, 28.11),
-        "texture_mean": (9.71, 39.28),
-        "perimeter_mean": (43.79, 188.5),
-        "area_mean": (143.5, 2501.0),
-        "smoothness_mean": (0.05263, 0.1634),
-        "compactness_mean": (0.01938, 0.3454),
-        "concavity_mean": (0.0, 0.4268),
-        "concave_points_mean": (0.0, 0.2012),
-        "symmetry_mean": (0.106, 0.304),
-        "fractal_dimension_mean": (0.04996, 0.09744),
-        "radius_se": (0.1115, 2.873),
-        "texture_se": (0.3602, 4.885),
-        "perimeter_se": (0.757, 21.98),
-        "area_se": (6.802, 542.2),
-        "smoothness_se": (0.001713, 0.03113),
-        "compactness_se": (0.002252, 0.1354),
-        "concavity_se": (0.0, 0.396),
-        "concave_points_se": (0.0, 0.05279),
-        "symmetry_se": (0.007882, 0.07895),
-        "fractal_dimension_se": (0.0008948, 0.02984),
-        "radius_worst": (7.93, 36.04),
-        "texture_worst": (12.02, 49.54),
-        "perimeter_worst": (50.41, 251.2),
-        "area_worst": (185.2, 4254.0),
-        "smoothness_worst": (0.07117, 0.2226),
-        "compactness_worst": (0.02729, 1.058),
-        "concavity_worst": (0.0, 1.252),
-        "concave_points_worst": (0.0, 0.291),
-        "symmetry_worst": (0.1565, 0.6638),
-        "fractal_dimension_worst": (0.05504, 0.2075),
-    }
+    # Load the model and scaler from their pickle files
+    model = pickle.load(open("models/model_xg.pkl", "rb"))
+    scaler = pickle.load(open("models/scaler.pkl", "rb"))
+
+    input_data = get_scale_data(input_data)
     
-    for key, value in input_data.items():
-        input_data[key] = (value - min_max[key][0]) / (min_max[key][1] - min_max[key][0])
+    prediction = model.predict(input_data)
+    
+    if prediction[0] == 0:
+        st.write("Benign.")
         
-    return input_data
+    else:
+        st.write("Malignant.")
+        
+    st.write(f"Prediction Probability : {model.predict_proba(input_data)[0][0]}")
+    st.write(f"Prediction Probability : {model.predict_proba(input_data)[0][1]}")
+    
+    
+    
 
 
 def main():
@@ -267,15 +328,13 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    
-   
 
     input_data = side_bar()
 
     with st.container():
         st.title("Breast Cancer Detection")
         st.markdown(
-            "Welcome to the Breast Cancer Detection web application. This app leverages machine learning to assist in detecting breast cancer using a variety of medical features. By providing user-adjustable sliders for key metrics like radius, texture, perimeter, area, smoothness, compactness, concavity, and others, users can explore different data points related to breast cancer."
+            "Welcome to the Breast Cancer Detection web application. This app leverages machine learning 🤖 to assist in detecting breast cancer 💗 using a variety of medical features 🏥. By providing user-adjustable sliders for key metrics like radius 📏, texture 🎨, perimeter 🧭, area 🏞️, smoothness 🌊, compactness 🗜️, concavity 🕳️, and others, users can explore different data points related to breast cancer."
         )
 
     col1, col2 = st.columns([4, 1])
@@ -284,7 +343,7 @@ def main():
         redar_chart = get_redar_chart(input_data)
         st.plotly_chart(redar_chart)
     with col2:
-        st.write("## About")
+        predict_cancer(input_data)
 
 
 if __name__ == "__main__":
