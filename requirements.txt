@@ -1,0 +1,10 @@
+streamlit
+ipykernel
+pandas
+numpy
+black
+plotly
+matplotlib
+pickle
+pickletools
+scikit-learn
