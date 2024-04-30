@@ -213,7 +213,7 @@ def get_redar_chart(input_data):
                 input_data[0][6],
                 input_data[0][7],
                 input_data[0][8],
-                input_data[0][9]
+                input_data[0][9],
             ],
             theta=categories,
             fill="toself",
@@ -265,60 +265,54 @@ def get_redar_chart(input_data):
     )
 
     fig.update_layout(
-        annotations=[
-            dict(
-                text="Mean",
-                x=0.5,
-                y=0.5,
-                font=dict(size=12),
-                showarrow=False,
-            ),
-            dict(
-                text="Standard Error",
-                x=0.5,
-                y=0.5,
-                font=dict(size=12),
-                showarrow=False,
-            ),
-            dict(
-                text="Worst",
-                x=0.5,
-                y=0.5,
-                font=dict(size=12),
-                showarrow=False,
-            ),
-        ],
-        title="Breast Cancer Detection",
         polar=dict(
             radialaxis=dict(visible=True, range=[0, 13]),
         ),
         showlegend=True,
+        legend=dict(orientation="v", y=1.2, x=0.1),
     )
 
     return fig
 
 
-def predict_cancer(input_data):
-
+def predict_cancer(input_data, option):
     # Load the model and scaler from their pickle files
-    model = pickle.load(open("models/model_xg.pkl", "rb"))
+    if option == "Logistic Regression":
+        model = pickle.load(open("models/model_logistic.pkl", "rb"))
+    elif option == "Random Forest":
+        model = pickle.load(open("models/model_random_forest.pkl", "rb"))
+    elif option == "Support Vector Machine":
+        model = pickle.load(open("models/model_svm.pkl", "rb"))
+    elif option == "K-Nearest Neighbors":
+        model = pickle.load(open("models/model_knn.pkl", "rb"))
+    elif option == "Decision Tree":
+        model = pickle.load(open("models/model_decision_tree.pkl", "rb"))
+    elif option == "XGBClassifier":
+        model = pickle.load(open("models/model_xgb.pkl", "rb"))
+    elif option == "Naive Bayes":
+        model = pickle.load(open("models/model_naive_bayes.pkl", "rb"))
+    elif option == "Gradient Boosting Classifier":
+        model = pickle.load(open("models/model_gradient_boosting.pkl", "rb"))
+
     scaler = pickle.load(open("models/scaler.pkl", "rb"))
 
     input_data = get_scale_data(input_data)
-    
+
     prediction = model.predict(input_data)
-    
+    prediction_proba = model.predict_proba(input_data)[0]
+
     if prediction[0] == 0:
-        st.write("Benign.")
-        
+        st.success("The result is Benign. 🎉", icon="✅")
+
     else:
-        st.write("Malignant.")
-        
-    st.write(f"Prediction Probability : {model.predict_proba(input_data)[0][0]}")
-    st.write(f"Prediction Probability : {model.predict_proba(input_data)[0][1]}")
-    
-    
-    
+        st.error("The result is Malignant. ⚠️", icon="⚠️")
+
+    # Display probabilities with progress bars
+    st.write("Probability of **Benign**:")
+    st.progress(int(prediction_proba[0] * 100))
+
+    st.write("Probability of **Malignant**:")
+    st.progress(int(prediction_proba[1] * 100))
 
 
 def main():
@@ -334,16 +328,37 @@ def main():
     with st.container():
         st.title("Breast Cancer Detection")
         st.markdown(
-            "Welcome to the Breast Cancer Detection web application. This app leverages machine learning 🤖 to assist in detecting breast cancer 💗 using a variety of medical features 🏥. By providing user-adjustable sliders for key metrics like radius 📏, texture 🎨, perimeter 🧭, area 🏞️, smoothness 🌊, compactness 🗜️, concavity 🕳️, and others, users can explore different data points related to breast cancer."
+            "Please connect this app to your cytology lab 🔬🔍 to help diagnose breast cancer 🏥 from your tissue sample. This app predicts using a machine learning model 📊🤖 whether a breast mass is benign ☺️ or malignant ☹️ based on the measurements it receives from your cytosis lab. You can also update the measurements by hand 🖐️ using the sliders in the sidebar. 📱"
         )
+    with st.container():
 
-    col1, col2 = st.columns([4, 1])
+        col1, col2 = st.columns([5, 2])
 
-    with col1:
-        redar_chart = get_redar_chart(input_data)
-        st.plotly_chart(redar_chart)
-    with col2:
-        predict_cancer(input_data)
+        with col1:
+            redar_chart = get_redar_chart(input_data)
+            st.plotly_chart(redar_chart)
+        with col2:
+            option = st.selectbox(
+                "**Select the model to use**",
+                (
+                    "Logistic Regression",
+                    "Random Forest",
+                    "Support Vector Machine",
+                    "K-Nearest Neighbors",
+                    "Decision Tree",
+                    "XGBClassifier",
+                    "Naive Bayes",
+                    "Gradient Boosting Classifier",
+                ),
+            )
+            predict_cancer(input_data, option)
+            st.markdown(
+                """
+                    ---
+                    App was Created by [Abdul Qaadir](https://github.com/AbQaadir). 
+                    Feel free to visit 😜.
+                """
+            )
 
 
 if __name__ == "__main__":
