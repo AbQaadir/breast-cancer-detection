@@ -1,0 +1,10 @@
+numpy
+pandas
+plotly
+pickel
+pickeltools
+xgboost
+streamlit
+scikit-learn
+ipykernel
+jupyter
